@@ -6,7 +6,7 @@
 *.ld
 *.mk
 *.conf
-/.tracecompass/*
+/tracecompass/*
 # Object files
 *.o
 *.ko
