@@ -73,7 +73,7 @@ void show_config(u8 meter, bool full) // read flash and if HOW display Status me
 			printf("%s",mmac.c_str());
 			mmac="";
 			printf("[AP Name:%s]\n",AP_NameString.c_str());
-			printf("Heater Name:%s Working:%s\n",aqui.heaterName,aqui.working?"On":"Off");
+			printf("Heater Name:%s Working:%s Relay:%s\n",aqui.heaterName,aqui.working?"On":"Off",relayState?"On":"Off");
 			printf("MQTT Server:[%s:%d] Client: %s Connected:%s User:[%s] Passw:[%s] SSL %s TSChan:[%s] TSAPIk:[%s]\n",aqui.mqtt,aqui.mqttport,settings.client_id,mqttf?"Yes":"No",
 					aqui.mqttUser,aqui.mqttPass,aqui.ssl?"Yes":"No",aqui.thingsChannel,aqui.thingsAPIkey);
 			printf("Cmd Queue:%s\n",cmdTopic.c_str());

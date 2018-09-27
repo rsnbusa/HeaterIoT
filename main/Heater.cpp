@@ -88,8 +88,9 @@ void write_to_flash() //save our configuration
 	q = nvs_open("config", NVS_READWRITE, &nvshandle);
 	if(q!=ESP_OK){
 		printf("Error opening NVS File\n");
+		return;
 	}
-	delay(300); //some delay same problem.
+//	delay(300); //some delay same problem.
 
 	q=nvs_set_blob(nvshandle,"config",(void*)&aqui,sizeof(aqui));
 	if (q ==ESP_OK)
@@ -104,7 +105,7 @@ void read_flash()
 			if(err!=ESP_OK)
 				printf("Error opening NVS File\n");
 
-			delay(300);
+//			delay(300);
 		 int largo=sizeof(aqui);
 			err=nvs_get_blob(nvshandle,"config",(void*)&aqui,&largo);
 
@@ -263,6 +264,7 @@ void processCmds(void * nc,cJSON * comands)
 {
 //			if(aqui.traceflag & (1<<HEAPD))
 //				printf(" Heap ProcessStart %d\n",xPortGetFreeHeapSize());
+
 			cJSON *cmd= cJSON_GetObjectItem(comands,"cmd");
 			if(cmd!=NULL)
 			{
@@ -288,6 +290,8 @@ void processCmds(void * nc,cJSON * comands)
 					if(aqui.traceflag & (1<<CMDD))
 						printf("[CMDD]Cmd Not found\n");
 			}
+			else
+				printf("Invalid Command Structure\n");
 }
 
 void sendResponse( void * comm,int msgTipo,string que,int len,int code,bool withHeaders, bool retain)
@@ -361,6 +365,8 @@ void relay(u8 estado)
 {
 	if(aqui.traceflag & (1<<GEND))
 		printf("[GEND]Heater relay %d\n",estado);
+	relayState=estado;
+
 	gpio_set_level((gpio_num_t)RELAY, estado);
 //	printf(" Heap RelayBefore %d\n",xPortGetFreeHeapSize());
 
@@ -706,6 +712,7 @@ void initialize_sntp(void *args)
 	time(&aqui.lastTime);
 	write_to_flash();
 	timef=1;
+
 	postLog(0,aqui.bootcount,"Boot");
 
 	if(!mdnsf)
@@ -1053,6 +1060,7 @@ void initVars()
 	// and be able to compile routines in an independent file
 	sonUid=0;
 
+	relayState=false;
 
 	uint16_t a=esp_random();
 	sprintf(textl,"heater%04d",a);
@@ -1160,7 +1168,7 @@ void initVars()
 	strcpy((char*)cmds[16].comando,"/ht_manual");			cmds[16].code=set_manual;				//done
 	strcpy((char*)cmds[17].comando,"/ht_ampscalib");		cmds[17].code=set_calibration;			//done
 	strcpy((char*)cmds[18].comando,"/ht_readlog");			cmds[18].code=set_readlog;				//done
-
+	strcpy((char*)cmds[19].comando,"/ht_session");			cmds[19].code=set_session;				//done
 
 	barX[0]=0;
 	barX[1]=6;
@@ -1456,7 +1464,11 @@ void monitorTank(void *pArg)
 				}
 				tempString=string(textl);
 				if(mqttThingf)
+				{
+					if(aqui.traceflag & (1<<GEND))
+								printf("ThingsSpeak(%s) Data %s\n",topicString.c_str(), tempString.c_str());
 					esp_mqtt_client_publish(clientThing, topicString.c_str(), tempString.c_str(), tempString.length(), 0, 0);
+				}
 				tempString="";
 			}
 		}
@@ -1718,73 +1730,74 @@ void launchTimer(int a )
 	struct tm timeinfo = {  };
 	time_t now;
 	int startReal,endReal;
+	esp_err_t q ;
 
 	int dia=1<<gdayOfWeek;
 	if(aqui.traceflag & (1<<GEND))
 		printf("[GEND]In LauchTimer for %d\n",a);
 	time(&now); //get current time
-		localtime_r(&now, &timeinfo); // convert to struct to change date to 2000/1/1
+	localtime_r(&now, &timeinfo); // convert to struct to change date to 2000/1/1
 
-		timeinfo.tm_mday=1;
-		timeinfo.tm_mon=0;
-		timeinfo.tm_year=100;
-				// set to 1/1/2000 x:y:z
-		now = mktime(&timeinfo); // now with same date so only time counts
-		s=string(aqui.timerNames[a]);
-				esp_err_t q ;
-					size_t largo=sizeof(tickets);
-						q=nvs_get_blob(knvshandle,s.c_str(),(void*)&mitimer[a],&largo);
+	timeinfo.tm_mday=1;
+	timeinfo.tm_mon=0;
+	timeinfo.tm_year=100;
+			// set to 1/1/2000 x:y:z
+	now = mktime(&timeinfo); // now with same date so only time counts
+	s=string(aqui.timerNames[a]);
 
-					if (q !=ESP_OK)
-						printf("Error get timer config %s\n",s.c_str()); //could not find that name, try more if available. Internal error in theory
-					else
-					{
+	size_t largo=sizeof(tickets);
+	q=nvs_get_blob(knvshandle,s.c_str(),(void*)&mitimer[a],&largo);
+
+	if (q !=ESP_OK)
+		printf("Error get timer config %s\n",s.c_str()); //could not find that name, try more if available. Internal error in theory
+	else
+	{
 //						if(aqui.traceflag & (1<<GEND))
 //							printf("[GEND]Timer %s day %d dia %d c1 %d c2 %d c3 %d add %ld now %ld\n",mitimer[a].userName,mitimer[a].days,dia,(mitimer[a].days & dia),mitimer[a].onOff,(mitimer[a].fromDate+mitimer[a].duration>now),mitimer[a].fromDate+mitimer[a].duration,now);
 
-							if((mitimer[a].days & dia) && mitimer[a].onOff && (mitimer[a].fromDate+mitimer[a].duration>now))
-						{
-								mitimer[a].internalNumber=a; //for queue identification
+		if((mitimer[a].days & dia) && mitimer[a].onOff && (mitimer[a].fromDate+mitimer[a].duration>now))
+		{
+				mitimer[a].internalNumber=a; //for queue identification
 
 
-							if(mitimer[a].fromDate<now)
-							{
-								startReal=1;
-								endReal=mitimer[a].fromDate-now+mitimer[a].duration;
+			if(mitimer[a].fromDate<now)
+			{
+				startReal=1;
+				endReal=mitimer[a].fromDate-now+mitimer[a].duration;
 
-							}
-							else
-							{
-								startReal=mitimer[a].fromDate-now;
-								endReal=startReal+mitimer[a].duration;
-							}
+			}
+			else
+			{
+				startReal=mitimer[a].fromDate-now;
+				endReal=startReal+mitimer[a].duration;
+			}
 
-							if(aqui.traceflag & (1<<GEND))
-								printf("[GEND]Start %s in %d end in %d f %ld d %ld now %d\n",mitimer[a].userName,startReal,endReal,mitimer[a].fromDate,mitimer[a].duration,(int)now);
+			if(aqui.traceflag & (1<<GEND))
+				printf("[GEND]Start %s in %d end in %d f %ld d %ld now %d\n",mitimer[a].userName,startReal,endReal,mitimer[a].fromDate,mitimer[a].duration,(int)now);
 
-							startTimer[a]=xTimerCreate(s.c_str(),startReal*1000 /portTICK_PERIOD_MS,pdFALSE,( void * ) &mitimer[a],&startHeaterCallback);
-							if(startTimer[a]==NULL)
-								printf("Failed to create Start timer %s\n",s.c_str());
-							else
-							{
-								endTimer[a]=xTimerCreate(s.c_str(),endReal*1000 /portTICK_PERIOD_MS,pdFALSE,( void * ) &mitimer[a],&endHeaterCallback);
-								if(endTimer[a]==NULL)
-									printf("Failed to create End timer %s\n",s.c_str());
-								else
-									{
-									//start both timers
-										if( xTimerStart( startTimer[a],0) != pdPASS )
-											printf("Failed to start starttimer %s\n",s.c_str());
-										else
-											if( xTimerStart( endTimer[a],0) != pdPASS )
-												{
-													printf("Failed to start endtimer %s\n",s.c_str());
-													xTimerStop(startTimer[a],0);
-												}
-									}
-							}
-						}
+			startTimer[a]=xTimerCreate(s.c_str(),startReal*1000 /portTICK_PERIOD_MS,pdFALSE,( void * ) &mitimer[a],&startHeaterCallback);
+			if(startTimer[a]==NULL)
+				printf("Failed to create Start timer %s\n",s.c_str());
+			else
+			{
+				endTimer[a]=xTimerCreate(s.c_str(),endReal*1000 /portTICK_PERIOD_MS,pdFALSE,( void * ) &mitimer[a],&endHeaterCallback);
+				if(endTimer[a]==NULL)
+					printf("Failed to create End timer %s\n",s.c_str());
+				else
+					{
+					//start both timers
+						if( xTimerStart( startTimer[a],0) != pdPASS )
+							printf("Failed to start starttimer %s\n",s.c_str());
+						else
+							if( xTimerStart( endTimer[a],0) != pdPASS )
+								{
+									printf("Failed to start endtimer %s\n",s.c_str());
+									xTimerStop(startTimer[a],0);
+								}
 					}
+			}
+		}
+	}
 
 }
 
@@ -1798,8 +1811,8 @@ void loadTimers()
 
 	time(&t);
 	localtime_r(&t, &timeinfo);
+	todate=timeinfo.tm_yday;
 	//Save day for Midnight restart
-	todate=timeinfo.tm_yday; //day of the year when timers where launched
 
 	for (int a=0; a<10;a++) //iterate over all possible timernames
 	{
@@ -1815,6 +1828,8 @@ void loadTimers()
 	if(aqui.traceflag & (1<<GEND))
 		printf("[GEND]Launched timers %d\n",fueron);
 }
+
+
 void wakeUp(void *pArg)
 {
 	while(1)
@@ -1891,8 +1906,6 @@ void app_main(void)
         err = nvs_flash_init();
     }
 
-	//findKeys();k
-
 	gpio_set_direction((gpio_num_t)0, GPIO_MODE_INPUT);
 	delay(3000);
 
@@ -1904,14 +1917,9 @@ void app_main(void)
 	else
 		nvs_close(nvshandle);
 
-
-	// load timers
 	err = nvs_open("timerk", NVS_READWRITE, &knvshandle);
 	if(err!=ESP_OK)
 		printf("Error opening NVS Timers File\n");
-	//else
-	//	nvs_close(knvshandle);
-
 
 
 	rebootl= rtc_get_reset_reason(1); //Reset cause for CPU 1
@@ -1939,20 +1947,17 @@ void app_main(void)
 	aqui.lastResetCode=rebootl;
 	write_to_flash();
 
-	xTaskCreate(&initWiFi,"log",10240,NULL, MGOS_TASK_PRIORITY, NULL);						// Log Manager
-//	initWiFi(NULL);
 
-	// Start Main Tasks
-	xTaskCreate(&displayManager,"dispMgr",10240,NULL, MGOS_TASK_PRIORITY, NULL);				//Manages all display to LCD
-	xTaskCreate(&kbd,"kbd",8192,NULL, MGOS_TASK_PRIORITY, NULL);								// User interface while in development. Erased in RELEASE//
+	// Launch Tasks
+
+	xTaskCreate(&initWiFi,"log",10240,NULL, MGOS_TASK_PRIORITY, NULL);						// WiFi
+	xTaskCreate(&displayManager,"dispMgr",10240,NULL, MGOS_TASK_PRIORITY, NULL);			// Manages all display to LCD
+	xTaskCreate(&kbd,"kbd",8192,NULL, MGOS_TASK_PRIORITY, NULL);							// User interface while in development. Erased in RELEASE//
 	xTaskCreate(&logManager,"log",4096,NULL, MGOS_TASK_PRIORITY, NULL);						// Log Manager
-	xTaskCreate(&wakeUp,"wake",1024,NULL, MGOS_TASK_PRIORITY, NULL);						// Log Manager
-	xTaskCreate(&monitorTank,"monitorT",8192,NULL, MGOS_TASK_PRIORITY, NULL);						// Log Manager
-
-	xTaskCreate(&heaterOnOff,"active",4096,NULL, MGOS_TASK_PRIORITY, NULL);						// Log Manager
+	xTaskCreate(&wakeUp,"wake",1024,NULL, MGOS_TASK_PRIORITY, NULL);						// Display Wake Up when sleep
+	xTaskCreate(&monitorTank,"monitorT",8192,NULL, MGOS_TASK_PRIORITY, NULL);				// ThingsSpeak Manager if Active
+	xTaskCreate(&heaterOnOff,"active",1024,NULL, MGOS_TASK_PRIORITY, NULL);					// Visual Clue of Working Status
 	xTaskCreate(&heapWD,"heapWD",1024,NULL, MGOS_TASK_PRIORITY, NULL);						// Log Manager
-
-
 
 	if(aqui.disptime>0)
 		xTimerStart(dispTimer,0);}

@@ -15,14 +15,12 @@ void erase_config() //do the dirty work
 	aqui.centinel=CENTINEL;
 	memcpy(aqui.mqtt,MQTTSERVER,sizeof(MQTTSERVER));//fixed mosquito server
 	aqui.mqtt[sizeof(MQTTSERVER)]=0;
-	printf("Mqtt Erase %s\n",aqui.mqtt);
+//	printf("Mqtt Erase %s\n",aqui.mqtt);
 	memcpy(aqui.domain,"feediot.co.nf",13);//fixed mosquito server feediot.co.nf
 	aqui.domain[13]=0;
 	aqui.calib=100.0;
 	aqui.disptime=1; //one minute
 	write_to_flash();
-
-	printf("Centinel %x\n",aqui.centinel);
 }
 
 

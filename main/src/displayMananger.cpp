@@ -235,6 +235,7 @@ void timerManager(void *arg) {
 
 		// check for day change, and restart timers.
 		if(timef && connf)
+			//if(0)
 		{
 	//		printf("change day %d vs todate %d\n",timeinfo.tm_yday,todate);
 
@@ -262,9 +263,9 @@ void displayManager(void *arg) {
 	float temp,diff;
 	//oldState=stateVM;
 	oldtemp=0.0;
-	xTaskCreate(&timerManager,"timeMgr",4096,NULL, MGOS_TASK_PRIORITY, NULL);
-	int cualTimer,oldTimer;
 	nextTimer=xTimerCreate("nextTimer",60000/portTICK_PERIOD_MS,true,( void * ) 0,&showNextTimer);
+	xTaskCreate(&timerManager,"timeMgr",8192,NULL, MGOS_TASK_PRIORITY, NULL);
+	int cualTimer,oldTimer;
 
 	oldTimer=-1;
 	u32 checkTimer=millis();
@@ -301,7 +302,7 @@ void displayManager(void *arg) {
 				if (oldTimer!=cualTimer)
 				{
 					if(oldTimer==-1)
-						xTimerStart(nextTimer,0); // Timer will semaphore a task waiting to display if No timer is Active (tankHandle is null)
+						xTimerStart(nextTimer,0);
 					oldTimer=cualTimer;
 				//	printf("Set timer name %s\n",aqui.timerNames[cualTimer]);
 					vTimerSetTimerID(nextTimer,(void*)&aqui.timerNames[cualTimer]);

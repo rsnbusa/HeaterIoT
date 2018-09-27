@@ -41,11 +41,11 @@ void set_statusSend(void * pArg){
 		}
 
 		if(!aqui.oneTankf)
-			sprintf(textl,"%d:%d:%d:%d:%d:%d:%s:%s:%s",(int)get_temp(!aqui.lastTankId),0,(int)get_temp(aqui.lastTankId),0,aqui.working,globalTimer?1:0,
+			sprintf(textl,"%d:%d:%d:%d:%d:%d:%s:%s:%s",(int)get_temp(!aqui.lastTankId),relayState,(int)get_temp(aqui.lastTankId),0,aqui.working,globalTimer?1:0,
 					textkwhnow,textkwhacum,textamp); // ambient temp and humidity, water temp, water outflowing,server status and state machine
 	//	sprintf(textl,"%d:%d:%d:%d:%d:%d:%s:%s:%s",1,0,2,0,aqui.working,globalTimer?1:0,textkwhnow,textkwhacum,textamp); // ambient temp and humidity, water temp, water outflowing,server status and state machine
 		else
-			sprintf(textl,"%d:%d:%d:%d:%d:%d:%s:%s:%s",0,0,(int)tTemp,0,aqui.working,globalTimer?1:0,textkwhnow,textkwhacum,textamp); // ambient temp and humidity, water temp, water outflowing,server status and state machine
+			sprintf(textl,"%d:%d:%d:%d:%d:%d:%s:%s:%s",0,relayState,(int)tTemp,0,aqui.working,globalTimer?1:0,textkwhnow,textkwhacum,textamp); // ambient temp and humidity, water temp, water outflowing,server status and state machine
 
 
 

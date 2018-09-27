@@ -86,7 +86,11 @@
 		<project id="HeaterIoT.null.4276758" name="HeaterIoT"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
-	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Default">
+			<resource resourceType="PROJECT" workspacePath="/HeaterIoT"/>
+		</configuration>
+	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cross.base.1716781910;cdt.managedbuild.toolchain.gnu.cross.base.1716781910.2083135027;cdt.managedbuild.tool.gnu.cross.c.compiler.163430946;cdt.managedbuild.tool.gnu.c.compiler.input.1112488441">
