@@ -11,7 +11,7 @@ using namespace std;
 
 extern void set_commonCmd(arg* pArg);
 extern string getParameter(arg* argument,string cual);
-extern void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain);
+extern void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain,string uid);
 extern void delay(uint16_t a);
 #define MAXLOG 840
 
@@ -23,7 +23,7 @@ void set_readlog(void * pArg){
 	if(argument->typeMsg!=1)
 	{
 		algo="Cmd only in mqtt format";
-		sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),NOERROR,false,false);            // send to someone's browser when asked
+		sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),NOERROR,false,false,uidStr);            // send to someone's browser when asked
 		goto exit;
 	}
 	set_commonCmd(argument);
@@ -32,7 +32,7 @@ void set_readlog(void * pArg){
 	if(algo!="zipo")
 	{
 		algo="Not authorized";
-		sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),ERRORAUTH,false,false);            // send to someone's browser when asked
+		sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),ERRORAUTH,false,false,uidStr);            // send to someone's browser when asked
 		goto exit;
 	}
 

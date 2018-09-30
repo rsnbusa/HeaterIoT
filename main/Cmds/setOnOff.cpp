@@ -3,7 +3,7 @@ using namespace std;
 
 extern void set_commonCmd(arg* pArg);
 extern string getParameter(arg* argument,string cual);
-extern void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain);
+extern void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain,string uid);
 extern void postLog(int code,int code1);
 extern void write_to_flash();
 extern void relay(u8 como);
@@ -62,7 +62,7 @@ void set_onoff(void * pArg){
 
 	algo=ss?"HeaterSys On":"HeaterSys Off";
 
-	sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),MINFO,false,false);            // send to someones browser when asked
+	sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),MINFO,false,false,uidStr);            // send to someones browser when asked
 
 	postLog(ss?HEATON:HEATOFF,0,ss?"HeaterOn":"HeaterOff");
 	//printf(" Heap Sendlog %d\n",xPortGetFreeHeapSize());

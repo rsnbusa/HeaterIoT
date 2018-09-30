@@ -8,7 +8,7 @@
  */
 using namespace std;
 #include "setGeneral.h"
-extern void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain);
+extern void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain,string uid);
 extern void delay(uint16_t a);
 extern void postLog(int code,int code1,string que);
 
@@ -128,7 +128,7 @@ void set_generalap(void * pArg){
 		{// it the update cmd not a AP option
 			write_to_flash();
 			webString="General Erased SSID";
-			sendResponse( argument->pComm,argument->typeMsg, webString,webString.length(),MINFO,false,false);            // send to someones browser when asked
+			sendResponse( argument->pComm,argument->typeMsg, webString,webString.length(),MINFO,false,false,uidStr);            // send to someones browser when asked
 			goto exit;
 		}
 		memcpy(aqui.ssid[index],s1.c_str(),s1.length()+1);
@@ -136,7 +136,7 @@ void set_generalap(void * pArg){
 			memcpy(aqui.pass[index],s1.c_str(),s1.length()+1);
 
 
-		sendResponse( argument->pComm,argument->typeMsg, webString,webString.length(),MINFO,false,false);
+		sendResponse( argument->pComm,argument->typeMsg, webString,webString.length(),MINFO,false,false,uidStr);
 	//	delay(10000);
 
 

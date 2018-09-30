@@ -11,7 +11,7 @@
 
 extern void postLog(int code,int code1,string que);
 void processCmds(void * nc,cJSON * comands);
-void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain);
+void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain,string uid);
 void loadTimers();
 
 using namespace std;
@@ -294,7 +294,7 @@ void processCmds(void * nc,cJSON * comands)
 				printf("Invalid Command Structure\n");
 }
 
-void sendResponse( void * comm,int msgTipo,string que,int len,int code,bool withHeaders, bool retain)
+void sendResponse( void * comm,int msgTipo,string que,int len,int code,bool withHeaders, bool retain, string uui)
 {
 	int msg_id ;
 
@@ -313,31 +313,30 @@ void sendResponse( void * comm,int msgTipo,string que,int len,int code,bool with
 		}
 
 	//	if(withHeaders)
-			if(1)
+		if(1)
 		{
 			for (int a=0;a<sonUid;a++)
 			{
 				spublishTopic="";
-				if(montonUid[a]!="")
+				if(montonUid[a]==uui)
+				{
 					spublishTopic=string(APP)+"/"+string(aqui.groupName)+"/"+string(aqui.heaterName)+"/"+montonUid[a]+"/MSG";
-				else
-					spublishTopic=string(APP)+"/"+string(aqui.groupName)+"/"+string(aqui.heaterName)+"/MSG";
+			//	else
+			//		spublishTopic=string(APP)+"/"+string(aqui.groupName)+"/"+string(aqui.heaterName)+"/MSG";
 				if(aqui.traceflag & (1<<PUBSUBD))
 					printf("[PUBSUBD]Publish %s Msg %s for %d\n",spublishTopic.c_str(),que.c_str(),(u32)mcomm);
-		//					printf(" Heap Sendb %d\n",xPortGetFreeHeapSize());
 				 msg_id = esp_mqtt_client_publish(mcomm, (char*)spublishTopic.c_str(), (char*)que.c_str(),que.length(), 0, 0);
-						//		printf(" Heap SendA %d\n",xPortGetFreeHeapSize());
 				 if(msg_id<0)
 					 printf("Error publish %d\n",msg_id);
-				delay(200); //wait a while for next destination
+				 return;
+		//		delay(200); //wait a while for next destination
+				}
 			}
 		}
 		else
 		{
 				spublishTopic="";
 				spublishTopic=string(APP)+"/"+string(aqui.groupName)+"/"+string(aqui.heaterName)+"/MSG";
-//				if(aqui.traceflag & (1<<PUBSUBD))
-//					printf("[PUBSUBD]DirectPublish %s Msg %s\n",spublishTopic.c_str(),que.c_str());
 				msg_id = esp_mqtt_client_publish(mcomm, (char*)spublishTopic.c_str(), (char*)que.c_str(),que.length(), 0, 0);
 				que="";
 
@@ -1888,7 +1887,7 @@ void heapWD(void *pArg)
 		delay(60000); //every minute
 		if(xPortGetFreeHeapSize()<MINHEAP)
 		{
-			postLog(18,xPortGetFreeHeapSize(),0);
+	//		postLog(18,xPortGetFreeHeapSize(),0);
 			delay(1000);
 			esp_restart();
 		}

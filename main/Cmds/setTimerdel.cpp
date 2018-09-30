@@ -3,7 +3,7 @@ using namespace std;
 
 extern void set_commonCmd(arg* pArg);
 extern string getParameter(arg* argument,string cual);
-extern void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain);
+extern void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain,string uid);
 extern void postLog(int code,int code1,string que);
 extern void write_to_flash();
 extern void relay(u8 como);
@@ -119,7 +119,7 @@ void set_timerdel(void * pArg){
 
 	exit:
 	free(lticket);
-	sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),MINFO,false,false);            // send to someones browser when asked
+	sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),MINFO,false,false,uidStr);            // send to someones browser when asked
 	if(aqui.traceflag & (1<<GEND))
 		printf("[GEND]Delete Timer\n");
 	postLog(TIMDEL,0,"TimerDel");

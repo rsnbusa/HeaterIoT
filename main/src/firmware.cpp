@@ -10,7 +10,7 @@
 using namespace std;
 extern bool set_commonCmd(arg* pArg,bool check);
 extern string getParameter(arg* argument,string cual);
-extern void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain);
+extern void sendResponse(void* comm,int msgTipo,string que,int len,int errorcode,bool withHeaders, bool retain,string uid);
 extern void ConfigSystem(void *pArg);
 extern uint32_t IRAM_ATTR millis();
 //string getParameter(arg* argument,string cual);
@@ -20,7 +20,7 @@ void  task_fatal_error(arg *argument)
 	printf("Exiting task due to fatal error...");
 	close(socket_id);
 	string algo="Not authorized";
-	sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),ERRORAUTH,false,false);
+	sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),ERRORAUTH,false,false,uidStr);
 	(void)vTaskDelete(NULL);
 								}
 
@@ -220,7 +220,7 @@ void set_FirmUpdateCmd(void *pArg)
 	}
 	printf("Prepare to restart system!\n");
 	algo="OTA Loaded. Rebooting...";
-	sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),MINFO,false,false);            // send to someones browser when asked
+	sendResponse( argument->pComm,argument->typeMsg, algo,algo.length(),MINFO,false,false,uidStr);            // send to someones browser when asked
 	algo="";
 	vTaskDelay(3000 /  portTICK_RATE_MS);
 	esp_restart();
